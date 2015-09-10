@@ -1,0 +1,76 @@
+v1.3 - Mon Jul 20 02:49:04 CEST 2015
+------------------------------------
+- display an error message if we cannot mount a device
+- properly detect our xmessage compatible command
+
+v1.2 - Thu Apr 23 15:49:36 CEST 2015
+------------------------------------
+- rc.d(8) script for dbus-daemon(1) was renamed (Adam Wolk)
+- tweak error messages
+- fix typo
+
+v1.1 - Sun Mar  2 17:24:40 CET 2014
+-----------------------------------
+- make toad(8) more resilient to weird corner cases
+
+v1.0 - Sun Mar  2 13:48:27 CET 2014
+-----------------------------------
+- drop all secondary groups inherited from root when we fork and setgid
+- mount point and device ownership are now created and set by the child
+- add a call to restore_dev in broom_sweep
+- do not try to mount 'c': not our job to deal with broken disklabels
+- make toad(8) more resilient, sanitize all return codes
+- extend documentation a bit after users'feedback
+- do nothing if uid is lower than 1000 (OpenBSD default UID_MIN)
+- display is not optional since we have no ConsoleKit PAM support on
+  OpenBSD
+
+v0.9 - Fri Dec 27 10:05:28 CET 2013
+-----------------------------------
+- Add UDF support
+- Add a sample attach+detach script
+- Properly check for devices locked in read-only mode
+- Fix zenity window height and width
+
+v0.8 - Wed Dec 11 12:54:22 CET 2013
+-----------------------------------
+- Ignore softraid(4) crypto disk attachement.
+- Only change the device owner, not the group.
+- Fix ejecting optical media, gio passes the block device path as
+  argument to eject(1), not the raw one.
+
+v0.7 - Mon Dec  9 12:32:09 CET 2013
+-----------------------------------
+- toadd: fix path to toad(8)
+
+v0.6 - Mon Dec  9 10:08:37 CET 2013
+-----------------------------------
+- Exit and clean when no partition is found on the device
+- Only attempt to mount the 'c' partition if no other partition is
+  found and the label is MSDOS.
+- Try to mount R/O if the initial mount command failed (and warn the
+  user).
+
+v0.5 - Thu Dec  5 15:19:24 CET 2013
+-----------------------------------
+- Fix compilation with WARNINGS set to "Yes"
+  Giovanni Bechis (giovanni@openbsd.org)
+
+v0.4 - Wed Dec  4 14:35:27 CET 2013
+-----------------------------------
+- do not hardcode path to toad(8)
+- stricter permissions on mount path
+
+v0.3 - Tue Oct  8 18:43:31 CEST 2013
+------------------------------------
+- fix install target
+- minor cleanups
+
+v0.2 - Thu Oct  4 14:18:58 UTC 2013
+-----------------------------------
+- toadd: new option `-w' to specify the optical disk polling interval
+- toadd: new option `-d' to run in foreground with debug output
+
+v0.1 - Thu Oct  3 14:18:58 UTC 2013
+-----------------------------------
+- Initial import of toad-0.1

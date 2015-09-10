@@ -1,0 +1,87 @@
+.\"
+.\" Copyright (c) 2013 M:tier Ltd.
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\"
+.Dd $Mdocdate$
+.Dt TOADD 8
+.Os
+.Sh NAME
+.Nm toadd
+.Nd
+optical medium detection daemon for
+.Xr toad 8
+.Sh SYNOPSIS
+.Nm
+.Bk -words
+.Op Fl d
+.Op Fl w Ar wait
+.Ek
+.Sh DESCRIPTION
+.Nm
+is an optical medium detection daemon that works in conjunction with the
+.Xr toad 8
+automounter.
+It will detect the insertion of a medium in the optical drives of the machine
+(maximum
+.Em 2 )
+by periodically reading their
+.Xr disklabel 8 .
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl d
+Do not daemonize.
+If this option is specified,
+.Nm
+will run in the foreground and log to stderr.
+.It Fl w Ar wait
+Pause
+.Ar wait
+seconds between each device poll (max: 60).
+If this option is omitted
+.Nm
+will poll every
+.Em 8
+seconds.
+.El
+.Pp
+When a medium is inserted or ejected,
+.Nm
+will call
+.Xr toad 8
+with the
+.Ar attach
+or
+.Ar detach
+argument respectively.
+.Pp
+To start
+.Nm
+at boot time using the
+.Xr rc.d 8
+framework, the following variable can be added to
+.Xr rc.conf.local 5 :
+.Bd -literal -offset indent
+.Ev toadd_flags=
+.Ed
+.Sh SEE ALSO
+.Xr toad 8
+.Sh AUTHORS
+.An Antoine Jacoutot Aq Mt antoine@mtier.org
+.Sh CAVEATS
+Some drives are not meant to be polled this frequently and it may be
+.Em possible to damage them
+by using
+.Nm .

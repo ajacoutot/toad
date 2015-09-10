@@ -1,0 +1,146 @@
+.\"
+.\" Copyright (c) 2013 M:tier Ltd.
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\"
+.Dd $Mdocdate$
+.Dt TOAD 8
+.Os
+.Sh NAME
+.Nm toad
+.Nd
+device automounter for
+.Xr hotplugd 8
+.Sh SYNOPSIS
+.Nm
+.Bk -words
+.Ar action
+.Ar devclass
+.Ar devname
+.Ek
+.Sh DESCRIPTION
+.Nm
+(Toad Opens All Devices)
+is a utility meant to be started from the
+.Xr hotplugd 8
+.Em attach
+and
+.Em detach
+scripts.
+It will try to mount all partitions found on the device under
+.Pa /run/media/username/device .
+Where
+.Em username
+is the active user
+.Em login
+name and
+.Em device
+is the type of the device,
+.Em usb
+or
+.Em cd ,
+followed by its number (from
+.Em 0
+to
+.Em 9 ) .
+This follows the
+.Em udev
+hierarchy in Linux which allows interaction with GLib/GIO's GUnixMount.
+.Pp
+The arguments are as follows:
+.Bl -tag -width Ds
+.It Ar action
+Can be
+.Ar attach
+(for device attachment)
+or
+.Ar detach
+(for device detachment).
+.It Ar devclass
+Integer corresponding to the device class as described in the
+.Aq Pa sys/device.h
+header file,  e.g.\&
+.Pa 2
+for disk drives.
+.It Ar devname
+Device name as listed in
+.Xr MAKEDEV 8 ,
+and the unit number, e.g.\&
+.Pa sd1 .
+.El
+.Pp
+Detection of the currently active user is done using ConsoleKit and DBus,
+.Nm
+will not do anything unless these are properly setup and running.
+Obviously,
+.Xr hotplugd 8
+must be running as well.
+To have
+.Xr hotplugd 8
+and
+.Xr dbus-daemon 1
+starting at boot time using the
+.Xr rc.d 8
+framework, the following variables can be added to
+.Xr rc.conf.local 5 :
+.Bd -literal -offset indent
+.Ev hotplugd_flags=
+.Ev pkg_scripts="messagebus"
+.Ed
+.Pp
+If the
+.Xr mount 8
+is successful,
+.Nm
+will try to call
+.Xr xdg-open 1
+which will start the user's preferred application for opening URLs.
+.Sh SECURITY NOTES
+.Nm
+will automatically set the
+.Em kern.usermount
+.Xr sysctl 3
+to allow regular users to
+.Xr mount
+devices they own.
+.Pp
+.Nm
+will change the device ownership to the active user just before mounting.
+It will change it back to
+.Em root
+after the mount is done (removable drives) or after ejection
+(optical media).
+.Sh EXAMPLES
+This same code can be used for both the
+.Em attach
+and
+.Em detach
+scripts:
+.Bd -literal -offset indent
+#!/bin/sh
+
+DEVCLASS=$1
+DEVNAME=$2
+
+case $DEVCLASS in
+2)
+	/usr/local/libexec/toad ${0##*/} $DEVCLASS $DEVNAME
+	;;
+esac
+.Ed
+.Sh SEE ALSO
+.Xr dbus-daemon 1
+.Xr hotplugd 8
+.Sh AUTHORS
+.An Antoine Jacoutot Aq Mt antoine@mtier.org
