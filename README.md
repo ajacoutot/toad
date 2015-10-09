@@ -16,7 +16,7 @@ script is provided: hotplug-scripts.
 Installing
 ----------
     $ make
-    $ sudo make install
+    $ doas make install
 
 Runtime dependencies
 --------------------
