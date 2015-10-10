@@ -35,3 +35,4 @@ TODO
 - check for parts without hardcoding the supported FS?
 - also handle USB printers (ugen/usb ownership)?
 - check whether fuse0 is accessible and use ntfs3g if available
+- pledge(2)
