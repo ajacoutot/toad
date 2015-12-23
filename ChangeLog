@@ -1,5 +1,6 @@
 v1.4 - NOT RELEASED
 ------------------------------------
+- drop support for opening the default file manager
 - fix output when running from the cli
 
 v1.3 - Mon Jul 20 02:49:04 CEST 2015
