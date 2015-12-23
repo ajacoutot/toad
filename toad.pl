@@ -24,7 +24,12 @@ use Net::DBus;
 use User::pwent qw(:FIELDS);
 
 if ( $< != 0 ) {
-	print 'need root privileges\n';
+	print "need root privileges\n";
+	exit (1);
+}
+
+sub usage {
+	print "usage: $0 attach|detach devclass device\n";
 	exit (1);
 }
 
@@ -37,11 +42,6 @@ my $mountbase = "$mounttop/media";
 my $mountopts = 'nodev,nosuid,noexec';
 my $devtype;
 my $devmax;
-
-sub usage {
-	print "usage: $0 attach|detach devclass device\n";
-	return (1);
-}
 
 sub get_active_user_info {
 	my $system_bus = Net::DBus->system;
@@ -156,7 +156,7 @@ sub mount_device {
 
 	my $usermount = `/sbin/sysctl -n kern.usermount=1`;
 	if ($usermount != 1) {
-		print 'failed to enable sysctl kern.usermount\n';
+		print "failed to enable sysctl kern.usermount\n";
 		return (1);
 	}
 
@@ -283,13 +283,13 @@ if ($devclass == 2) {
 	$devtype = 'cd';
 	$devmax = 2;
 } else {
-	print 'device type not supported\n';
+	print "device type not supported\n";
 	exit (1);
 }
 
 if ($action eq 'attach') {
 	if (!defined($login) || !defined($uid) || !defined($gid) || !defined($home) || !defined($display)) {
-		print 'ConsoleKit: user does not own the active session\n';
+		print "ConsoleKit: user does not own the active session\n";
 		exit (1);
 	}
 	mount_device ();
