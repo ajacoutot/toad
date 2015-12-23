@@ -1,15 +1,15 @@
-v1.4 - NOT RELEASED
-------------------------------------
+v1.4 - Wed Dec 23 15:09:54 CET 2015
+-----------------------------------
 - drop support for opening the default file manager
 - fix output when running from the cli
 
-v1.3 - Mon Jul 20 02:49:04 CEST 2015
-------------------------------------
+v1.3 - Mon Jul 20 02:49:04 CET 2015
+-----------------------------------
 - display an error message if we cannot mount a device
 - properly detect our xmessage compatible command
 
-v1.2 - Thu Apr 23 15:49:36 CEST 2015
-------------------------------------
+v1.2 - Thu Apr 23 15:49:36 CET 2015
+-----------------------------------
 - rc.d(8) script for dbus-daemon(1) was renamed (Adam Wolk)
 - tweak error messages
 - fix typo
@@ -66,8 +66,8 @@ v0.4 - Wed Dec  4 14:35:27 CET 2013
 - do not hardcode path to toad(8)
 - stricter permissions on mount path
 
-v0.3 - Tue Oct  8 18:43:31 CEST 2013
-------------------------------------
+v0.3 - Tue Oct  8 18:43:31 CET 2013
+-----------------------------------
 - fix install target
 - minor cleanups
 
