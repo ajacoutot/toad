@@ -208,8 +208,8 @@ sub mount_device {
 read-write, mounting in read-only mode!
 fsck(8) may be used for consistency check and repair.\"");
 			}
-			system ("xdg-open file://$mountbase/$login/$devtype$devnum");
-			# xmsg and xdg-open failures are non-fatal and at this
+			system ("gvfs-open file://$mountbase/$login/$devtype$devnum");
+			# xmsg and gvfs-open failures are non-fatal and at this
 			# point we are mounted, so exit the child cleanly
 			exit (0);
 		}

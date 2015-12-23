@@ -23,7 +23,7 @@ Runtime dependencies
 toad(8):
 - Net::DBus			required
 - ConsoleKit			required
-- xdg-open(1) (xdg-utils)	optional
+- gvfs-open(1) (gvfs)		optional
 - zenity(1) or gxmessage(1)	optional (will fallback to xmessage(1))
 
 toadd(8):
