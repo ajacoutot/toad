@@ -68,6 +68,10 @@ sub xmsg_cmd {
 }
 
 sub fw_update {
+	if (!($^O eq "openbsd")) {
+		return 0;
+	}
+
 	require OpenBSD::FwUpdate;
 	my $xmsg = xmsg_cmd ();
 
@@ -320,7 +324,7 @@ if ($devclass == 2) {
 if ($action eq 'attach') {
 	if (!defined($login) || !defined($uid) || !defined($gid) || !defined($home) || !defined($display)) {
 		print "ConsoleKit: user does not own the active session\n";
-#		exit (1);
+		exit (1);
 	}
 	if ($devclass == 4) {
 		fw_update ();
