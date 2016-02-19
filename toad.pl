@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (c) 2013, 2014 M:tier Ltd.
+# Copyright (c) 2013, 2014, 2015, 2016 M:tier Ltd.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -42,6 +42,59 @@ my $mountbase = "$mounttop/media";
 my $mountopts = 'nodev,nosuid,noexec';
 my $devtype;
 my $devmax;
+
+sub xmsg_cmd {
+	my $xmsg;
+	my @xcmd = ('zenity', 'gxmessage');
+
+	XMSG: foreach (split (/:/, $ENV{PATH})) {
+		foreach my $xcmd (@xcmd) {
+			$xmsg = $_ . '/' . $xcmd;
+			if (-x $xmsg) {
+				last XMSG;
+			}
+		}
+	}
+	unless (-x $xmsg) {
+		$xmsg ="xmessage";
+	}
+	if ($xmsg =~ /zenity/) {
+		$xmsg = "$xmsg --no-wrap --warning --text";
+	} else {
+		$xmsg = "$xmsg -center";
+	}
+
+	return $xmsg;
+}
+
+sub fw_update {
+	if (!($^O eq "openbsd")) {
+		return 0;
+	}
+
+	require OpenBSD::FwUpdate;
+	my $xmsg = xmsg_cmd ();
+
+	shift(@ARGV);
+	shift(@ARGV);
+
+	my $driver = ${ARGV[0]};
+	my $fw = OpenBSD::FwUpdate::State->new(@ARGV);
+	OpenBSD::FwUpdate->find_machine_drivers($fw);
+	OpenBSD::FwUpdate->find_installed_drivers($fw);
+
+	if ($fw->{all_drivers}{$driver}) {
+		if (!$fw->is_installed($driver)) {
+			if (OpenBSD::FwUpdate->parse_and_run == 0) {
+				system ("${xmsg} \"Installed firmware package for ${driver}(4).\"");
+			} else {
+				system ("${xmsg} \"Failed to install firmware package for ${driver}(4).\"");
+			}
+		}
+	} else {
+		system ("${xmsg} \"Unknown driver ${driver}(4).\"");
+	}
+}
 
 sub get_active_user_info {
 	my $system_bus = Net::DBus->system;
@@ -112,30 +165,12 @@ sub get_parts {
 sub mount_device {
 	my @allparts;
 	my @parts;
-	my $xmsg;
-	my @xcmd = ('zenity', 'gxmessage');
+	my $xmsg = xmsg_cmd ();
 
 	# ignore softraid(4) crypto device attachment
 	my $sr_crypto = `/sbin/disklabel $devname 2>/dev/null | grep "SR CRYPTO"`;
 	if ($sr_crypto) {
 		return (0);
-	}
-
-	XMSG: foreach (split (/:/, $ENV{PATH})) {
-		foreach my $xcmd (@xcmd) {
-			$xmsg = $_ . '/' . $xcmd;
-			if (-x $xmsg) {
-				last XMSG;
-			}
-		}
-	}
-	unless (-x $xmsg) {
-		$xmsg ="xmessage";
-	}
-	if ($xmsg =~ /zenity/) {
-		$xmsg = "$xmsg --no-wrap --warning --text";
-	} else {
-		$xmsg = "$xmsg -center";
 	}
 
 	if ($devtype eq 'cd') {
@@ -281,7 +316,7 @@ if ($devclass == 2) {
 } elsif ($devclass == 9) {
 	$devtype = 'cd';
 	$devmax = 2;
-} else {
+} elsif ($devclass != 4) {
 	print "device type not supported\n";
 	exit (1);
 }
@@ -291,7 +326,11 @@ if ($action eq 'attach') {
 		print "ConsoleKit: user does not own the active session\n";
 		exit (1);
 	}
-	mount_device ();
+	if ($devclass == 4) {
+		fw_update ();
+	} else {
+		mount_device ();
+	}
 } elsif ($action eq 'detach') {
 	broom_sweep ();
 } else {
