@@ -1,3 +1,7 @@
+v1.5 - NOT-RELEASED-YET
+-----------------------------------
+- add support for fw_update(1); from Robert Nagy (robert@mtier.org)
+
 v1.4 - Wed Dec 23 15:09:54 CET 2015
 -----------------------------------
 - drop support for opening the default file manager
