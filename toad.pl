@@ -316,7 +316,7 @@ if ($devclass == 2) {
 } elsif ($devclass == 9) {
 	$devtype = 'cd';
 	$devmax = 2;
-} elsif ($devclass != 4) {
+} elsif ($devclass != 3) {
 	print "device type not supported\n";
 	exit (1);
 }
@@ -326,7 +326,7 @@ if ($action eq 'attach') {
 		print "ConsoleKit: user does not own the active session\n";
 		exit (1);
 	}
-	if ($devclass == 4) {
+	if ($devclass == 3) {
 		fw_update ();
 	} else {
 		mount_device ();
