@@ -75,6 +75,7 @@ sub fw_update {
 	require OpenBSD::FwUpdate;
 	my $xmsg = xmsg_cmd ();
 
+	# remove "attach" and "devclass" from args to unconfuse pkg_add(1)
 	shift(@ARGV);
 	shift(@ARGV);
 
