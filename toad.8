@@ -114,7 +114,7 @@ It will change it back to
 after the mount is done (removable drives) or after ejection
 (optical media).
 .Sh EXAMPLES
-This same code can be used for both the
+This sample code can be used for both the
 .Em attach
 and
 .Em detach
@@ -126,7 +126,7 @@ DEVCLASS=$1
 DEVNAME=$2
 
 case $DEVCLASS in
-2)
+2|3)
 	/usr/local/libexec/toad ${0##*/} $DEVCLASS $DEVNAME
 	;;
 esac
