@@ -314,26 +314,24 @@ sub broom_sweep {
 if ($devclass == 2) {
 	$devtype = 'usb';
 	$devmax = 10;
+} elsif ($devclass == 3) {
+	$devtype = 'net';
 } elsif ($devclass == 9) {
 	$devtype = 'cd';
 	$devmax = 2;
-} elsif ($devclass != 3) {
+} else {
 	print "device type not supported\n";
 	exit (1);
 }
 
 if ($action eq 'attach') {
-	if (!defined($login) || !defined($uid) || !defined($gid) || !defined($home) || !defined($display)) {
+	if (!defined($login) || !defined($uid) || !defined($gid)
+		|| !defined($home) || !defined($display)) {
 		print "ConsoleKit: user does not own the active session\n";
 		exit (1);
 	}
-	if ($devclass == 3) {
-		fw_update ();
-	} else {
-		mount_device ();
-	}
+	if ($devtype == 'cd' || $devtype == 'usb') { mount_device (); }
+	elsif ($devtype == 'net') { fw_update (); }
 } elsif ($action eq 'detach') {
-	broom_sweep ();
-} else {
-	usage ();
-}
+	if ($devtype == 'cd' || $devtype == 'usb') { broom_sweep (); }
+} else { usage (); }
