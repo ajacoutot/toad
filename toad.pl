@@ -68,10 +68,6 @@ sub xmsg_cmd {
 }
 
 sub fw_update {
-	if (!($^O eq "openbsd")) {
-		return 0;
-	}
-
 	require OpenBSD::FwUpdate;
 	my $xmsg = xmsg_cmd ();
 
