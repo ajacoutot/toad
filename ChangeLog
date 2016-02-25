@@ -1,4 +1,8 @@
-v1.5 - NOT-RELEASED-YET
+v1.6 - Thu Feb 25 13:53:42 CET 2016
+-----------------------------------
+- on react on explicit hotplug events
+
+v1.5 - Thu Feb 25 13:28:36 CET 2016
 -----------------------------------
 - add support for fw_update(1); from Robert Nagy (robert@mtier.org)
 
@@ -31,8 +35,7 @@ v1.0 - Sun Mar  2 13:48:27 CET 2014
 - make toad(8) more resilient, sanitize all return codes
 - extend documentation a bit after users'feedback
 - do nothing if uid is lower than 1000 (OpenBSD default UID_MIN)
-- display is not optional since we have no ConsoleKit PAM support on
-  OpenBSD
+- display is not optional since we have no ConsoleKit PAM support on OpenBSD
 
 v0.9 - Fri Dec 27 10:05:28 CET 2013
 -----------------------------------
@@ -57,8 +60,7 @@ v0.6 - Mon Dec  9 10:08:37 CET 2013
 - Exit and clean when no partition is found on the device
 - Only attempt to mount the 'c' partition if no other partition is
   found and the label is MSDOS.
-- Try to mount R/O if the initial mount command failed (and warn the
-  user).
+- Try to mount R/O if the initial mount command failed (and warn the user).
 
 v0.5 - Thu Dec  5 15:19:24 CET 2013
 -----------------------------------
