@@ -1,6 +1,6 @@
 v1.6 - Thu Feb 25 13:53:42 CET 2016
 -----------------------------------
-- on react on explicit hotplug events
+- only react on explicit hotplug events
 
 v1.5 - Thu Feb 25 13:28:36 CET 2016
 -----------------------------------
