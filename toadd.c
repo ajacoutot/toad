@@ -27,15 +27,7 @@
 #define POLL_INT	8	/* poll for device every n seconds */
 #define TOAD_PATH	LIBEXECDIR "/toad"
 
-void usage(void);
-
-void
-usage(void)
-{
-	extern char *__progname;
-	fprintf(stderr, "usage: %s [-d] [-w wait]\n", __progname);
-	exit(1);
-}
+__dead void usage(void);
 
 int
 main(int argc, char *argv[])
@@ -108,4 +100,11 @@ main(int argc, char *argv[])
 		sleep(poll_int);
 	}
 	exit(0);
+}
+
+__dead void
+usage(void)
+{
+	(void)fprintf(stderr, "usage: %s [-d] [-w wait]\n", getprogname());
+	exit(1);
 }
