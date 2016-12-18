@@ -23,7 +23,7 @@ Runtime dependencies
 toad(8):
 - Net::DBus			required
 - ConsoleKit			required
-- zenity(1) or gxmessage(1)	optional (will fallback to xmessage(1))
+- Polkit			required (for eject(1)/umount(8))
 
 toadd(8):
 - toad(8)			required
