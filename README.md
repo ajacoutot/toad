@@ -30,6 +30,8 @@ toadd(8):
 
 TODO
 ----
+- syslog / xmessage
+- eject(1)
 - toadd cleanup mount points on SIG{TERM,HUP,...?}
 - check for parts without hardcoding the supported FS?
 - also handle USB printers (ugen/usb ownership)?
