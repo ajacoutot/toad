@@ -130,7 +130,7 @@ sub create_pkrule {
 	print PKFILE "        <allow_active>yes</allow_active>\n";
 	print PKFILE "    </defaults>\n";
 	print PKFILE "    <annotate key=\"org.freedesktop.policykit.exec.path\">/sbin/umount</annotate>\n";
-	print PKFILE "    <annotate key=\"org.freedesktop.policykit.exec.argv1\">/run/media/$login/$devtype$devnum</annotate>\n";
+	print PKFILE "    <annotate key=\"org.freedesktop.policykit.exec.argv1\">$mountbase/$login/$devtype$devnum</annotate>\n";
 	print PKFILE "  </action>\n";
 	print PKFILE "</policyconfig>\n";
 
