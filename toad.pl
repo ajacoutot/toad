@@ -43,11 +43,14 @@ my $mountbase = "$mounttop/media";
 my $mountopts = 'nodev,nosuid,noexec';
 my $devtype;
 my $devmax;
+my $pkumount = "/usr/local/share/polkit-1/actions/org.freedesktop.policykit.toad.pkexec.umount";
 
 sub broom_sweep {
 	my $is_busy;
 	my @tryrm;
 	my @cfd;
+
+	unlink glob "$pkumount.$devname?.policy";
 
 	if (-d $mountbase && $mountbase ne '/') {
 		opendir (TOP, $mountbase) or return;
@@ -109,7 +112,7 @@ sub create_mount_point {
 
 sub create_pkrule {
 	my($devname, $devnum, $part) = @_;
-	my $pkfile = "/usr/local/share/polkit-1/actions/org.freedesktop.policykit.toad.pkexec.umount.$devname$part.policy";
+	my $pkfile = "$pkumount.$devname$part.policy";
 
 	unless(open PKFILE, '>'.$pkfile) {
 		die "Unable to create $pkfile\n";
