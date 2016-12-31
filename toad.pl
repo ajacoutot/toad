@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 #
+# Copyright (c) 2016 Antoine Jacoutot <ajacoutot@openbsd.org>
 # Copyright (c) 2013, 2014, 2015, 2016 M:tier Ltd.
 #
 # Permission to use, copy, modify, and distribute this software for any
