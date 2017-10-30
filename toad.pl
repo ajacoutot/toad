@@ -37,13 +37,41 @@ sub usage {
 if (@ARGV < 3) { usage (); }
 
 my ($action, $devclass, $devname) = @ARGV;
-my ($login, $uid, $gid) = get_active_user_info ();
+my ($login, $uid, $gid, $home, $display) = get_active_user_info ();
 my $mounttop = '/run';
 my $mountbase = "$mounttop/media";
 my $mountopts = 'nodev,nosuid,noexec';
 my $devtype;
 my $devmax;
 my $pkumount = "/usr/local/share/polkit-1/actions/org.freedesktop.policykit.toad.pkexec.umount";
+
+sub xmsg {
+	my ($text, $warning) = @_;
+	my $xmsg;
+
+	XMSG: foreach (split (/:/, $ENV{PATH})) {
+		$xmsg = $_ . '/' . 'zenity';
+		if (-x $xmsg) {
+			last XMSG;
+		}
+	}
+	unless (-x $xmsg) {
+		$xmsg = "xmessage";
+	}
+
+	$xmsg = "DISPLAY=${display} XAUTHORITY=${home}/.Xauthority $xmsg";
+	if ($xmsg =~ /zenity/) {
+		if ($warning) {
+			system("$xmsg --warning --no-wrap --text \"$text\"");
+		} else {
+			system("$xmsg --notification --text \"$text\"");
+		}
+	} else {
+		system("$xmsg \"$text\"");
+	}
+
+	return 0;
+}
 
 sub broom_sweep {
 	my $is_busy;
@@ -177,8 +205,10 @@ sub get_active_user_info {
 
 		my $gid = $pw_gid;
 		my $login = $pw_name;
+		my $home = $pw_dir;
+		my $display = $ck_session->GetX11Display ();
 
-		return ($login, $uid, $gid);
+		return ($login, $uid, $gid, $home, $display);
 	}
 }
 
@@ -239,15 +269,32 @@ sub mount_device {
 		my $device = "/dev/$devname$part";
 		my $devnum = get_mount_point ();
 		my $dirty = 0;
+		my $retry = 1;
+		my $label = `/sbin/disklabel $devname | grep ^label | sed "s,label: ,,g"`;
+		chomp $label;
+		unless (-z $label) {
+			$devnum = $devnum . ' (' . $label . ')';
+		}
 
 		create_mount_point ($devnum);
 		create_pkrule ($devname, $devnum, $part);
 
-		my $mountrw = `/sbin/mount -o $mountopts $device $mountbase/$login/$devtype$devnum 2>&1`;
+TRYMOUNT:
+		my $mountrw = `/sbin/mount -o $mountopts $device "$mountbase/$login/$devtype$devnum" 2>&1`;
 		if (length ($mountrw) != 0) {
-			system ("/sbin/mount -o $mountopts,ro $device $mountbase/$login/$devtype$devnum");
+			if ($mountrw =~ /run fsck/) {
+				xmsg("Running filesystem check on ${devtype}${devnum}.");
+				system("fsck -y ${device} >/dev/null");
+				if (($? == 0) && ($retry > 0)) {
+					xmsg("Filesystem on ${devtype}${devnum} is clean.");
+					$retry = 0;
+					goto TRYMOUNT;
+				}
+			}
+			xmsg("Mounting ${devtype}${devnum} read-only.");
+			system ("/sbin/mount -o $mountopts,ro $device \"$mountbase/$login/$devtype$devnum\"");
 			unless ($? == 0) {
-				print "Cannot mount $device!\n\n$mountrw\n";
+				xmsg("Cannot mount $device!\n\n$mountrw\n", 1);
 				broom_sweep ();
 				next;
 			}
@@ -255,10 +302,13 @@ sub mount_device {
 				$dirty = 1;
 			}
 		}
+		my $rocheck = `/sbin/mount | grep "$devtype$devnum"`;
 		if ($dirty == 1) {
-			print "Filesystem on device $device is not clean and
+			xmsg("Filesystem on device $device ($devtype$devnum) is not clean and
 cannot be mounted read-write, mounting in read-only mode! fsck(8) may be used
-for consistency check and repair.\n";
+for consistency check and repair.", 1);
+		} elsif ($rocheck =~ /read-only/) {
+			xmsg("Filesystem on ${devtype}${devnum} mounted read-only!");
 		}
 	}
 }
