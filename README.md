@@ -24,13 +24,14 @@ toad(8):
 - Net::DBus			required
 - ConsoleKit			required
 - Polkit			required (for eject(1)/umount(8))
+- Zenity			optional
 
 toadd(8):
 - toad(8)			required
 
 TODO
 ----
-- syslog / xmessage
+- syslog
 - eject(1)
 - toadd cleanup mount points on SIG{TERM,HUP,...?}
 - check for parts without hardcoding the supported FS?

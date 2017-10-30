@@ -25,4 +25,6 @@ afterinstall:
 	${INSTALL_SCRIPT} ${.CURDIR}/hotplug-scripts ${DESTDIR}${EXAMPLEDIR}
 	${INSTALL_SCRIPT} ${.CURDIR}/toad.pl ${DESTDIR}${BINDIR}/toad
 
+SUBDIR+= umount-wrapper
+
 .include <bsd.prog.mk>
