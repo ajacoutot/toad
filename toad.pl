@@ -270,7 +270,7 @@ sub mount_device {
 		my $devnum = get_mount_point ();
 		my $dirty = 0;
 		my $retry = 1;
-		my $label = `/sbin/disklabel $devname | grep ^label | sed "s,label: ,,g"`;
+		my $label = `/sbin/disklabel $devname | grep ^label | sed "s,label: ,,g" | sed 's,\/,_,g'`;
 		chomp $label;
 		unless (-z $label) {
 			$devnum = $devnum . ' (' . $label . ')';
