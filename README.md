@@ -26,7 +26,7 @@ Runtime dependencies
 toad(8):
 - Net::DBus			required
 - ConsoleKit			required
-- GLib				required (for gdbus(1))
+- GLib (OpenBSD package)	required (patched for umount(8) with pkexec(1))
 - Polkit			required (for eject(1)/umount(8))
 
 toadd(8):
