@@ -253,7 +253,7 @@ sub mount_device {
 	}
 
 	unless (@parts) {
-		run_as_user ("/usr/local/bin/notify-send -i drive-harddisk-usb -a toad -u critical \"No supported partition found on device $devname!\"");
+		gdbus_call ("notify", "No supported partition found on device $devname!");
 		return (0);
 	}
 
