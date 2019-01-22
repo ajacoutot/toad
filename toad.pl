@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (c) 2016 Antoine Jacoutot <ajacoutot@openbsd.org>
+# Copyright (c) 2016, 2019 Antoine Jacoutot <ajacoutot@openbsd.org>
 # Copyright (c) 2013, 2014, 2015, 2016 M:tier Ltd.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -37,20 +37,20 @@ sub usage {
 if (@ARGV < 3) { usage (); }
 
 my ($action, $devclass, $devname) = @ARGV;
-my ($login, $uid, $gid) = get_active_user_info ();
+my ($login, $uid, $gid, $display) = get_active_user_info ();
 my $mounttop = '/run';
 my $mountbase = "$mounttop/media";
 my $mountopts = 'nodev,nosuid,noexec';
 my $devtype;
 my $devmax;
-my $pkumount = "/usr/local/share/polkit-1/actions/org.freedesktop.policykit.toad.pkexec.umount";
+my $pkrulebase = "/etc/polkit-1/rules.d/45-toad-$login";
 
 sub broom_sweep {
 	my $is_busy;
 	my @tryrm;
 	my @cfd;
 
-	unlink glob "$pkumount.$devname?.policy";
+	unlink glob "$pkrulebase.$devname?.rules";
 
 	if (-d $mountbase && $mountbase ne '/') {
 		opendir (TOP, $mountbase) or return;
@@ -112,29 +112,49 @@ sub create_mount_point {
 
 sub create_pkrule {
 	my($devname, $devnum, $part) = @_;
-	my $pkfile = "$pkumount.$devname$part.policy";
+	my $pkrule = "$pkrulebase.$devname$part.rules";
 
-	unless(open PKFILE, '>'.$pkfile) {
-		die "Unable to create $pkfile\n";
+	unless(open PKRULE, '>'.$pkrule) {
+		die "Unable to create $pkrule\n";
 	}
 
-	print PKFILE "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-	print PKFILE "<!DOCTYPE policyconfig PUBLIC\n";
-	print PKFILE " \"-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN\"\n";
-	print PKFILE " \"http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd\">\n";
-	print PKFILE "<policyconfig>\n";
-	print PKFILE "  <action id=\"org.freedesktop.policykit.toad.pkexec.umount.$devname$part\">\n";
-	print PKFILE "    <defaults>\n";
-	print PKFILE "        <allow_any>no</allow_any>\n";
-	print PKFILE "        <allow_inactive>no</allow_inactive>\n";
-	print PKFILE "        <allow_active>yes</allow_active>\n";
-	print PKFILE "    </defaults>\n";
-	print PKFILE "    <annotate key=\"org.freedesktop.policykit.exec.path\">/sbin/umount</annotate>\n";
-	print PKFILE "    <annotate key=\"org.freedesktop.policykit.exec.argv1\">$mountbase/$login/$devtype$devnum</annotate>\n";
-	print PKFILE "  </action>\n";
-	print PKFILE "</policyconfig>\n";
+	print PKRULE "polkit.addRule(function(action, subject) {\n";
+	print PKRULE "  if (action.id == \"org.freedesktop.policykit.exec\" &&\n";
+	print PKRULE "    action.lookup(\"program\") == \"/sbin/umount\" &&\n";
+	print PKRULE "    action.lookup(\"command_line\") == \"/sbin/umount $mountbase/$login/$devtype$devnum\") {\n";
+	print PKRULE "    return polkit.Result.YES;\n";
+	print PKRULE "  }\n";
+	print PKRULE "});\n";
 
-	close PKFILE;
+	close PKRULE;
+}
+
+sub gdbus_call {
+	my($action, $args) = @_;
+	my $gdbus_call = "/usr/local/bin/gdbus call";
+
+	my $pid = fork ();
+	if (!defined ($pid)) {
+		die "could not fork: $!";
+	} elsif ($pid) {
+		if (waitpid ($pid, 0) > 0) {
+			if ($? >> 8 ne 0) {
+				return (1);
+			}
+		}
+	} else {
+		$( = $) = "$gid $gid";
+		$< = $> = $uid;
+
+		$ENV{"DISPLAY"} = $display;
+		if ($action eq 'notify') {
+			system ("$gdbus_call -e -d org.freedesktop.Notifications -o /org/freedesktop/Notifications -m org.freedesktop.Notifications.Notify toad 42 drive-harddisk-usb \"Toad\" \"$args\" [] {} 5000 >/dev/null");
+		} elsif ($action eq 'open-fm') {
+			system ("$gdbus_call -e -d org.freedesktop.FileManager1 -o /org/freedesktop/FileManager1 -m org.freedesktop.FileManager1.ShowFolders '[\"file://$args\"]' \"\" >/dev/null");
+		}
+		# exit the child
+		exit (0);
+	}
 }
 
 sub fw_update {
@@ -175,10 +195,13 @@ sub get_active_user_info {
 		getpwuid ($uid) || die "no $uid user: $!";
 		next unless $uid >= 1000;
 
+		my $display = $ck_session->GetX11Display ();
+		next unless length ($display);
+
 		my $gid = $pw_gid;
 		my $login = $pw_name;
 
-		return ($login, $uid, $gid);
+		return ($login, $uid, $gid, $display);
 	}
 }
 
@@ -230,7 +253,7 @@ sub mount_device {
 	}
 
 	unless (@parts) {
-		print "no supported partition found on device $devname\n";
+		run_as_user ("/usr/local/bin/notify-send -i drive-harddisk-usb -a toad -u critical \"No supported partition found on device $devname!\"");
 		return (0);
 	}
 
@@ -238,7 +261,6 @@ sub mount_device {
 		$part =~ s/^\s+//;
 		my $device = "/dev/$devname$part";
 		my $devnum = get_mount_point ();
-		my $dirty = 0;
 
 		create_mount_point ($devnum);
 		create_pkrule ($devname, $devnum, $part);
@@ -247,19 +269,16 @@ sub mount_device {
 		if (length ($mountrw) != 0) {
 			system ("/sbin/mount -o $mountopts,ro $device $mountbase/$login/$devtype$devnum");
 			unless ($? == 0) {
-				print "Cannot mount $device!\n\n$mountrw\n";
+				gdbus_call ("notify", "Cannot mount $device!");
 				broom_sweep ();
 				next;
 			}
 			unless ($mountrw =~ /Permission denied/) {
-				$dirty = 1;
+				gdbus_call ("notify", "Unclean filesystem on device $device, mounting read-only!");
 			}
 		}
-		if ($dirty == 1) {
-			print "Filesystem on device $device is not clean and
-cannot be mounted read-write, mounting in read-only mode! fsck(8) may be used
-for consistency check and repair.\n";
-		}
+
+		gdbus_call ("open-fm", "$mountbase/$login/$devtype$devnum");
 	}
 }
 
