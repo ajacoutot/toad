@@ -122,7 +122,9 @@ sub create_pkrule {
 	print PKRULE "  if (action.id == \"org.freedesktop.policykit.exec\" &&\n";
 	print PKRULE "    action.lookup(\"program\") == \"/sbin/umount\" &&\n";
 	print PKRULE "    action.lookup(\"command_line\") == \"/sbin/umount $mountbase/$login/$devtype$devnum\") {\n";
-	print PKRULE "    return polkit.Result.YES;\n";
+	print PKRULE "    if (subject.local && subject.active && subject.user == \"$login\") {\n";
+	print PKRULE "      return polkit.Result.YES;\n";
+	print PKRULE "    }\n";
 	print PKRULE "  }\n";
 	print PKRULE "});\n";
 
