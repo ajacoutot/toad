@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+z#!/usr/bin/perl
 #
 # Copyright (c) 2016, 2019 Antoine Jacoutot <ajacoutot@openbsd.org>
 # Copyright (c) 2013, 2014, 2015, 2016 M:tier Ltd.
@@ -50,7 +50,7 @@ sub broom_sweep {
 	my @tryrm;
 	my @cfd;
 
-	unlink glob "$pkrulebase.$devname?.rules";
+	unlink glob "$pkrulebase-$devname?.rules";
 
 	if (-d $mountbase && $mountbase ne '/') {
 		opendir (TOP, $mountbase) or return;
@@ -112,7 +112,7 @@ sub create_mount_point {
 
 sub create_pkrule {
 	my($devname, $devnum, $part) = @_;
-	my $pkrule = "$pkrulebase.$devname$part.rules";
+	my $pkrule = "$pkrulebase-$devname$part.rules";
 
 	unless(open PKRULE, '>'.$pkrule) {
 		die "Unable to create $pkrule\n";
