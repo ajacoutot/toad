@@ -1,4 +1,4 @@
-z#!/usr/bin/perl
+#!/usr/bin/perl
 #
 # Copyright (c) 2016, 2019 Antoine Jacoutot <ajacoutot@openbsd.org>
 # Copyright (c) 2013, 2014, 2015, 2016 M:tier Ltd.
