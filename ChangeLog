@@ -1,5 +1,10 @@
-v1.7 - NOT-RELEASED-YET
+v1.8 - NOT-RELEASED-YET
 -----------------------------------
+- 
+
+v1.7 - Wed Jan 23 04:37:24 CET 2019
+-----------------------------------
+- big rewrite to use pkexec(1), needs glib2 >=2.58.3p0 (OpenBSD package)
 - add net device to the attach script sample
 
 v1.6 - Thu Feb 25 13:53:42 CET 2016
