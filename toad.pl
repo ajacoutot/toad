@@ -159,31 +159,6 @@ sub gdbus_call {
 	}
 }
 
-sub fw_update {
-	require OpenBSD::FwUpdate;
-
-	# remove "attach" and "devclass" from args to unconfuse pkg_add(1)
-	shift(@ARGV);
-	shift(@ARGV);
-
-	my $driver = ${ARGV[0]};
-	my $fw = OpenBSD::FwUpdate::State->new(@ARGV);
-	OpenBSD::FwUpdate->find_machine_drivers($fw);
-	OpenBSD::FwUpdate->find_installed_drivers($fw);
-
-	if ($fw->{all_drivers}{$driver}) {
-		if (!$fw->is_installed($driver)) {
-			if (OpenBSD::FwUpdate->parse_and_run == 0) {
-				print "Installed firmware package for $driver(4).\n";
-			} else {
-				print "Failed to install firmware package for $driver(4).\n";
-			}
-		}
-	} else {
-		print "Unknown driver $driver(4).\n";
-	}
-}
-
 sub get_active_user_info {
 	my $system_bus = Net::DBus->system;
 	my $ck_service = $system_bus->get_service ('org.freedesktop.ConsoleKit');
@@ -287,8 +262,6 @@ sub mount_device {
 if ($devclass == 2) {
 	$devtype = 'usb';
 	$devmax = 10;
-} elsif ($devclass == 3) {
-	$devtype = 'net';
 } elsif ($devclass == 9) {
 	$devtype = 'cd';
 	$devmax = 2;
@@ -303,7 +276,6 @@ if ($action eq 'attach') {
 		exit (1);
 	}
 	if ($devtype eq 'cd' || $devtype eq 'usb') { mount_device (); }
-	elsif ($devtype eq 'net') { fw_update (); }
 } elsif ($action eq 'detach') {
 	if ($devtype eq 'cd' || $devtype eq 'usb') { broom_sweep (); }
 } else { usage (); }

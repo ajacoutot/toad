@@ -2,15 +2,21 @@
 device automounter for OpenBSD hotplugd(8)
 
 toad (Toad Opens All Devices) is a utility meant to be started from the
-hotplugd(8) attach and detach scripts.  It will try to mount all partitions
-found on the device under /run/media/username/device.
+hotplugd(8) attach and detach scripts.  It will try to mount all
+partitions found on the device under /run/media/${USER}/device.  Where
+${USER} is the active user login name and device is the type of the
+device, usb or cd, followed by its number (from 0 to 9).  This follows
+the udev hierarchy in Linux which allows interaction with GLib/GIO's
+GUnixMount.
 
-toad(8) will also try to install the firmware package corresponding to the USB
-device being attached.
+Detection of the currently active user is done using ConsoleKit and DBus,
+toad will not do anything unless these are properly setup and running.
+Obviously, hotplugd(8) must be running as well.
 
-Optionally, the toadd(8) optical medium detection daemon that works in
-conjunction with toad(8) can be used to detect the insertion of a medium in the
-optical drives of the machine (maximum 2) and mount it automatically.
+toadd(8) is an optical medium detection daemon that works in conjunction
+with the toad(8) automounter.  It will detect the insertion of a medium
+in the optical drives of the machine (maximum 2) by periodically reading
+their disklabel(8).
 
 See toad(8) for more information about how to create the hotplugd(8) attach and
 detach scripts. A sample script that can be used as both an attach and a detach
@@ -35,10 +41,8 @@ toadd(8):
 TODO
 ----
 - better notifications and logging (syslog)
-- eject(1)
 - toadd cleanup mount points on SIG{TERM,HUP,...?}
 - check for parts without hardcoding the supported FS?
-- also handle USB printers (ugen/usb ownership)?
 - check whether fuse0 is accessible and use ntfs3g if available
 - pledge(2), unveil(2)
-- move system() calls to perl modules
+- move most system() calls to perl modules

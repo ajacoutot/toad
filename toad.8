@@ -40,10 +40,8 @@ and
 .Em detach
 scripts.
 It will try to mount all partitions found on the device under
-.Pa /run/media/username/device .
-Where
-.Em username
-is the active user
+.Pa /run/media/${USER}/device .
+Where ${USER} is the active user
 .Em login
 name and
 .Em device
@@ -109,7 +107,7 @@ DEVCLASS=$1
 DEVNAME=$2
 
 case $DEVCLASS in
-2|3)
+2)
 	/usr/local/libexec/toad ${0##*/} $DEVCLASS $DEVNAME
 	;;
 esac

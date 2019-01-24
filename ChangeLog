@@ -1,6 +1,7 @@
 v1.8 - NOT-RELEASED-YET
 -----------------------------------
-- 
+- remove support for firmware installation, it can easily be done using
+  fw_update(1) in the hotplugd(8) attach script
 
 v1.7 - Wed Jan 23 04:37:24 CET 2019
 -----------------------------------
