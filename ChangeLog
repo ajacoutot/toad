@@ -1,5 +1,10 @@
-v1.8 - NOT-RELEASED-YET
+v1.9 - NOT-RELEASED-YET
 -----------------------------------
+
+v1.8 - Sun Feb 10 15:03:09 CET 2019
+-----------------------------------
+- only works with regular users (uid 1000...60000)
+- add support for ejecting cd-rom
 - remove support for firmware installation, it can easily be done using
   fw_update(1) in the hotplugd(8) attach script
 

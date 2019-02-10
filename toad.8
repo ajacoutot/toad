@@ -57,6 +57,9 @@ This follows the
 .Em udev
 hierarchy in Linux which allows interaction with GLib/GIO's GUnixMount.
 .Pp
+Users outside the default UID range (1000...60000) are ignored (nothing will
+be done).
+.Pp
 The arguments are as follows:
 .Bl -tag -width Ds
 .It Ar action

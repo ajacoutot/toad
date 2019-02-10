@@ -182,7 +182,7 @@ sub get_active_user_info {
 
 		my $uid = $ck_session->GetUnixUser ();
 		getpwuid ($uid) || die "no $uid user: $!";
-		next unless $uid >= 1000;
+		next unless ($uid >= 1000 && $uid <= 60000);
 
 		my $display = $ck_session->GetX11Display ();
 		next unless length ($display);
