@@ -128,6 +128,18 @@ sub create_pkrule {
 	print PKRULE "  }\n";
 	print PKRULE "});\n";
 
+	if ($devtype eq 'cd') {
+		print PKRULE "polkit.addRule(function(action, subject) {\n";
+		print PKRULE "  if (action.id == \"org.freedesktop.policykit.exec\" &&\n";
+		print PKRULE "    action.lookup(\"program\") == \"/bin/eject\" &&\n";
+		print PKRULE "    action.lookup(\"command_line\") == \"/bin/eject /dev/$devname$part\") {\n";
+		print PKRULE "    if (subject.local && subject.active && subject.user == \"$login\") {\n";
+		print PKRULE "      return polkit.Result.YES;\n";
+		print PKRULE "    }\n";
+		print PKRULE "  }\n";
+		print PKRULE "});\n";
+	}
+
 	close PKRULE;
 }
 
