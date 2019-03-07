@@ -27,6 +27,10 @@
 #define POLL_INT	8	/* poll for device every n seconds */
 #define TOAD_PATH	LIBEXECDIR "/toad"
 
+#ifndef LIBEXECDIR
+#define LIBEXECDIR	"/usr/local/libexec"
+#endif
+
 __dead void usage(void);
 
 int
