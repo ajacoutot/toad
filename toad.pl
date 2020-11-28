@@ -37,7 +37,7 @@ sub usage {
 if (@ARGV < 3) { usage (); }
 
 my ($action, $devclass, $devname) = @ARGV;
-my ($login, $uid, $gid, $display) = get_active_user_info ();
+my ($login, $uid, $gid) = get_active_user_info ();
 my $mounttop = '/run';
 my $mountbase = "$mounttop/media";
 my $mountopts = 'nodev,nosuid,noexec';
@@ -143,34 +143,6 @@ sub create_pkrule {
 	close PKRULE;
 }
 
-sub gdbus_call {
-	my($action, $args) = @_;
-	my $gdbus_call = "/usr/local/bin/gdbus call";
-
-	my $pid = fork ();
-	if (!defined ($pid)) {
-		die "could not fork: $!";
-	} elsif ($pid) {
-		if (waitpid ($pid, 0) > 0) {
-			if ($? >> 8 ne 0) {
-				return (1);
-			}
-		}
-	} else {
-		$( = $) = "$gid $gid";
-		$< = $> = $uid;
-
-		$ENV{"DISPLAY"} = $display;
-		if ($action eq 'notify') {
-			system ("$gdbus_call -e -d org.freedesktop.Notifications -o /org/freedesktop/Notifications -m org.freedesktop.Notifications.Notify toad 42 drive-harddisk-usb \"Toad\" \"$args\" [] {} 5000 >/dev/null");
-		} elsif ($action eq 'open-fm') {
-			system ("$gdbus_call -e -d org.freedesktop.FileManager1 -o /org/freedesktop/FileManager1 -m org.freedesktop.FileManager1.ShowFolders '[\"file://$args\"]' \"\" >/dev/null");
-		}
-		# exit the child
-		exit (0);
-	}
-}
-
 sub get_active_user_info {
 	my $system_bus = Net::DBus->system;
 	my $ck_service = $system_bus->get_service ('org.freedesktop.ConsoleKit');
@@ -184,13 +156,10 @@ sub get_active_user_info {
 		getpwuid ($uid) || die "no $uid user: $!";
 		next unless ($uid >= 1000 && $uid <= 60000);
 
-		my $display = $ck_session->GetX11Display ();
-		next unless length ($display);
-
 		my $gid = $pw_gid;
 		my $login = $pw_name;
 
-		return ($login, $uid, $gid, $display);
+		return ($login, $uid, $gid);
 	}
 }
 
@@ -242,7 +211,7 @@ sub mount_device {
 	}
 
 	unless (@parts) {
-		gdbus_call ("notify", "No supported partition found on device $devname!");
+		print "No supported partition found on device $devname!\n";
 		return (0);
 	}
 
@@ -258,16 +227,14 @@ sub mount_device {
 		if (length ($mountrw) != 0) {
 			system ("/sbin/mount -o $mountopts,ro $device $mountbase/$login/$devtype$devnum");
 			unless ($? == 0) {
-				gdbus_call ("notify", "Cannot mount $device!");
+				print "Cannot mount $device!\n";
 				broom_sweep ();
 				next;
 			}
 			unless ($mountrw =~ /Permission denied/) {
-				gdbus_call ("notify", "Unclean filesystem on device $device, mounting read-only!");
+				print "Unclean filesystem on device $device, mounting read-only!\n";
 			}
 		}
-
-		gdbus_call ("open-fm", "$mountbase/$login/$devtype$devnum");
 	}
 }
 

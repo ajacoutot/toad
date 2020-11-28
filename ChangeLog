@@ -1,5 +1,11 @@
-v1.9 - NOT-RELEASED-YET
+v1.10 - NOT-RELEASED-YET
 -----------------------------------
+- 
+
+v1.9 - Sat Nov 28 17:43:27 CET 2020
+-----------------------------------
+- stop playing games with gdbus; it's useless as we need XAUTHORITY of the user
+  which we cannot get after forking
 
 v1.8 - Sun Feb 10 15:03:09 CET 2019
 -----------------------------------
