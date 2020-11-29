@@ -180,7 +180,7 @@ sub gdbus_call {
 				$cmd .= " -d org.freedesktop.FileManager1";
 				$cmd .= " -o /org/freedesktop/FileManager1";
 				$cmd .= " -m org.freedesktop.FileManager1.ShowFolders";
-				$cmd .= " '[\"file://$args\"]' \"\">/dev/null";
+				$cmd .= " '[\"file://$args\"]' \"\" >/dev/null";
 				system($cmd);
 			}
 		}
