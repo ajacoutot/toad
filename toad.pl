@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (c) 2016, 2019 Antoine Jacoutot <ajacoutot@openbsd.org>
+# Copyright (c) 2016, 2019, 2020 Antoine Jacoutot <ajacoutot@openbsd.org>
 # Copyright (c) 2013, 2014, 2015, 2016 M:tier Ltd.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -172,8 +172,7 @@ sub gdbus_call {
 				$cmd .= " -o /org/freedesktop/Notifications";
 				$cmd .= " -m org.freedesktop.Notifications.Notify";
 				$cmd .= " toad 42 drive-harddisk-usb";
-				$cmd .= " \"Toad\" \"$args\" [] {} 5000";
-				print ("CMD: $cmd\n");
+				$cmd .= " \"Toad\" \"$args\" [] {} 5000 >/dev/null";
 				system($cmd);
 			}
 		} elsif ($action eq 'open-fm') {
@@ -181,7 +180,7 @@ sub gdbus_call {
 				$cmd .= " -d org.freedesktop.FileManager1";
 				$cmd .= " -o /org/freedesktop/FileManager1";
 				$cmd .= " -m org.freedesktop.FileManager1.ShowFolders";
-				$cmd .= " '[\"file://$args\"]' \"\"";
+				$cmd .= " '[\"file://$args\"]' \"\">/dev/null";
 				system($cmd);
 			}
 		}
