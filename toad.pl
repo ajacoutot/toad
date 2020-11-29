@@ -37,7 +37,8 @@ sub usage {
 if (@ARGV < 3) { usage (); }
 
 my ($action, $devclass, $devname) = @ARGV;
-my ($login, $uid, $gid) = get_active_user_info ();
+my ($login, $uid, $gid, $display, $home) = get_active_user_info ();
+my $dbus_session_bus_address = get_dbus_session_bus_address ();
 my $mounttop = '/run';
 my $mountbase = "$mounttop/media";
 my $mountopts = 'nodev,nosuid,noexec';
@@ -143,6 +144,52 @@ sub create_pkrule {
 	close PKRULE;
 }
 
+sub gdbus_call {
+	my($action, $args) = @_;
+	my $cmd = "gdbus call -e";
+
+	my $pid = fork ();
+	if (!defined ($pid)) {
+		die "could not fork: $!";
+	} elsif ($pid) {
+		if (waitpid ($pid, 0) > 0) {
+			if ($? >> 8 ne 0) {
+				return (1);
+			}
+		}
+	} else {
+		$( = $) = "$gid $gid";
+		$< = $> = $uid;
+
+		$ENV{"DISPLAY"} = $display;
+		$ENV{"HOME"} = $home;
+		$ENV{"DBUS_SESSION_BUS_ADDRESS"} = $dbus_session_bus_address;
+
+		if ($action eq 'notify') {
+			print ("$args\n");
+			if (defined ($dbus_session_bus_address)) {
+				$cmd .= " -d org.freedesktop.Notifications";
+				$cmd .= " -o /org/freedesktop/Notifications";
+				$cmd .= " -m org.freedesktop.Notifications.Notify";
+				$cmd .= " toad 42 drive-harddisk-usb";
+				$cmd .= " \"Toad\" \"$args\" [] {} 5000";
+				print ("CMD: $cmd\n");
+				system($cmd);
+			}
+		} elsif ($action eq 'open-fm') {
+			if (defined ($dbus_session_bus_address)) {
+				$cmd .= " -d org.freedesktop.FileManager1";
+				$cmd .= " -o /org/freedesktop/FileManager1";
+				$cmd .= " -m org.freedesktop.FileManager1.ShowFolders";
+				$cmd .= " '[\"file://$args\"]' \"\"";
+				system($cmd);
+			}
+		}
+		# exit the child
+		exit (0);
+	}
+}
+
 sub get_active_user_info {
 	my $system_bus = Net::DBus->system;
 	my $ck_service = $system_bus->get_service ('org.freedesktop.ConsoleKit');
@@ -156,10 +203,54 @@ sub get_active_user_info {
 		getpwuid ($uid) || die "no $uid user: $!";
 		next unless ($uid >= 1000 && $uid <= 60000);
 
+		my $display = $ck_session->GetX11Display ();
+		next unless length ($display);
+
 		my $gid = $pw_gid;
 		my $login = $pw_name;
+		my $home = $pw_dir;
 
-		return ($login, $uid, $gid);
+		return ($login, $uid, $gid, $display, $home);
+	}
+}
+
+sub get_dbus_session_file {
+	my $id;
+	my $machine_id = "/etc/machine-id";
+
+	if (open my $fh, "<", $machine_id) {
+		read $fh, $id, -s $fh;
+		close $fh;
+	} else {
+		print "Can't open file \"$machine_id\"\n";
+		return;
+	}
+
+	$id =~ s/\R//g; # drop line break
+	$display =~ s/://;
+
+	return "$home/.dbus/session-bus/$id-$display";
+}
+
+sub get_dbus_session_bus_address {
+	my $dbus_session_file = get_dbus_session_file ();
+
+	if (!defined ($dbus_session_file)) {
+		return;
+	}
+
+	if (open my $fh, "<", $dbus_session_file) {
+		while (<$fh>) {
+			chomp;
+			my ($l, $r) = split /=/, $_, 2;
+			if ($l eq "DBUS_SESSION_BUS_ADDRESS") {
+				$r =~ s/'//g;
+				return ($r);
+			}
+		}
+		close $fh;
+	} else {
+		print "Can't open file \"$dbus_session_file\"\n";
 	}
 }
 
@@ -211,7 +302,7 @@ sub mount_device {
 	}
 
 	unless (@parts) {
-		print "No supported partition found on device $devname!\n";
+		gdbus_call ("notify", "No supported partition found on device $devname");
 		return (0);
 	}
 
@@ -227,14 +318,16 @@ sub mount_device {
 		if (length ($mountrw) != 0) {
 			system ("/sbin/mount -o $mountopts,ro $device $mountbase/$login/$devtype$devnum");
 			unless ($? == 0) {
-				print "Cannot mount $device!\n";
+				gdbus_call ("notify", "Cannot mount $device!");
 				broom_sweep ();
 				next;
 			}
 			unless ($mountrw =~ /Permission denied/) {
-				print "Unclean filesystem on device $device, mounting read-only!\n";
+				gdbus_call ("notify", "Unclean filesystem on device $device, mounting read-only");
 			}
 		}
+
+		gdbus_call ("open-fm", "$mountbase/$login/$devtype$devnum");
 	}
 }
 
@@ -245,12 +338,12 @@ if ($devclass == 2) {
 	$devtype = 'cd';
 	$devmax = 2;
 } else {
-	print "device type not supported\n";
+	gdbus_call ("notify", "Device type not supported");
 	exit (1);
 }
 
 if ($action eq 'attach') {
-	if (!defined($login) || !defined($uid) || !defined($gid)) {
+	if (!defined ($login) || !defined ($uid) || !defined ($gid)) {
 		print "ConsoleKit: user does not own the active session\n";
 		exit (1);
 	}

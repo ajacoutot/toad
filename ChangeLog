@@ -1,6 +1,11 @@
-v1.10 - NOT-RELEASED-YET
+v1.11 - NOT-RELEASED-YET
 -----------------------------------
-- 
+
+v1.10 - Sun Nov 29 10:59:52 CET 2020
+------------------------------------
+- re-introduce the gdbus calls now that we have a way to connect to the user
+  session; this will automatically open your file manager on plugging and
+  display notifications on the Desktop
 
 v1.9 - Sat Nov 28 17:43:27 CET 2020
 -----------------------------------
