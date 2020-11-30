@@ -1,4 +1,4 @@
-v1.12 - NOT-RELEASED-YET
+v1.12 - Mon Nov 30 20:48:33 CET 2020
 ------------------------------------
 - remove some debug output
 - redirect gdbus calls stdout to /dev/null
