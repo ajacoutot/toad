@@ -283,9 +283,8 @@ sub mount_device {
 	my @allparts;
 	my @parts;
 
-	# ignore softraid(4) crypto device attachment
-	my $sr_crypto = `/sbin/disklabel $devname 2>/dev/null | grep "SR CRYPTO"`;
-	if ($sr_crypto) {
+	# XXX skip device on error (e.g. DIOCGDINFO) or softraid(4) attachment
+	if (system ("set -o pipefail; /sbin/disklabel $devname 2>/dev/null | ! grep -qw RAID") != 0) {
 		return (0);
 	}
 
@@ -308,8 +307,13 @@ sub mount_device {
 	foreach my $part (@parts) {
 		$part =~ s/^\s+//;
 		my $device = "/dev/$devname$part";
-		my $devnum = get_mount_point ();
 
+		# skip already mounted partition
+		if (system ("/sbin/mount | grep -q $device") == 0) {
+			next;
+		}
+
+		my $devnum = get_mount_point ();
 		create_mount_point ($devnum);
 		create_pkrule ($devname, $devnum, $part);
 

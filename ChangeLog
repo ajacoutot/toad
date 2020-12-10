@@ -1,3 +1,12 @@
+v1.14 - UNRELEASED
+------------------------------------
+
+v1.13 - Mon Nov 30 20:48:33 CET 2020
+------------------------------------
+- skip device on errors
+- properly skip RAID devices
+- skip already mounted partitions
+
 v1.12 - Mon Nov 30 20:48:33 CET 2020
 ------------------------------------
 - remove some debug output
