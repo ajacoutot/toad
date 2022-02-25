@@ -319,8 +319,6 @@ sub mount_device {
 	foreach my $part (@parts) {
 		$part =~ s/^\s+//;
 		my @part = split(/:/, $part);
-		print "000 $part[0]\n";
-		print "001 $part[1]\n";
 		my $device = "/dev/$devname$part[0]";
 
 		# skip already mounted partition
