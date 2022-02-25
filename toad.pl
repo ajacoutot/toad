@@ -253,6 +253,16 @@ sub get_dbus_session_bus_address {
 	}
 }
 
+sub get_mount_fs_type {
+	my ($fstype) = @_;
+	my $mount_t;
+
+	if ($fstype eq 'NTFS') {
+		$mount_t = 'ntfs';
+	}
+	return ($mount_t);
+}
+
 sub get_mount_point {
 	my $devnum;
 
@@ -272,7 +282,8 @@ sub get_parts {
 		my $fsmatch = `/sbin/disklabel $devname 2>/dev/null | /usr/bin/grep " $fs "`;
 		while ($fsmatch =~ /([^\n]+)\n?/g) {
 			my @part = split /:/, $1;
-			push (@parts, $part[0]);
+			my $mount_t = get_mount_fs_type($fs);
+			push (@parts, "$part[0]:$mount_t");
 		}
 	}
 
@@ -282,6 +293,7 @@ sub get_parts {
 sub mount_device {
 	my @allparts;
 	my @parts;
+	my $mount_cmd = "/sbin/mount";
 
 	# XXX skip device on error (e.g. DIOCGDINFO) or softraid(4) attachment
 	if (system ("set -o pipefail; /sbin/disklabel $devname 2>/dev/null | ! grep -qw RAID") != 0) {
@@ -306,7 +318,10 @@ sub mount_device {
 
 	foreach my $part (@parts) {
 		$part =~ s/^\s+//;
-		my $device = "/dev/$devname$part";
+		my @part = split(/:/, $part);
+		print "000 $part[0]\n";
+		print "001 $part[1]\n";
+		my $device = "/dev/$devname$part[0]";
 
 		# skip already mounted partition
 		if (system ("/sbin/mount | grep -q $device") == 0) {
@@ -317,15 +332,20 @@ sub mount_device {
 		create_mount_point ($devnum);
 		create_pkrule ($devname, $devnum, $part);
 
-		my $mountrw = `/sbin/mount -o $mountopts $device $mountbase/$login/$devtype$devnum 2>&1`;
-		if (length ($mountrw) != 0) {
-			system ("/sbin/mount -o $mountopts,ro $device $mountbase/$login/$devtype$devnum");
+		if (($part[1] eq 'ntfs') && (-x '/usr/local/bin/ntfs-3g')) {
+			$mount_cmd = "/usr/local/bin/ntfs-3g";
+			$mountopts = "$mountopts,uid=$uid,gid=$gid,umask=077";
+		}
+
+		my $trymount = `$mount_cmd -o $mountopts $device $mountbase/$login/$devtype$devnum 2>&1`;
+		if (length ($trymount) != 0) {
+			system ("$trymount -o $mountopts,ro $device $mountbase/$login/$devtype$devnum");
 			unless ($? == 0) {
 				gdbus_call ("notify", "Cannot mount $device!");
 				broom_sweep ();
 				next;
 			}
-			unless ($mountrw =~ /Permission denied/) {
+			unless ($trymount =~ /Permission denied/) {
 				gdbus_call ("notify", "Unclean filesystem on device $device, mounting read-only");
 			}
 		}
