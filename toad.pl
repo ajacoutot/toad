@@ -330,24 +330,23 @@ sub mount_device {
 		create_mount_point ($devnum);
 		create_pkrule ($devname, $devnum, $part);
 
-		# DISCUSS: should we inform user about missing
-		# mounting tools (i.e. blkid, ntfs-3g, mount.exfat-fuse)
-
 		# check if NTFS is actually exFAT
 		if ($part[1] eq 'ntfs' && -x '/usr/local/sbin/blkid') {
-			if (System ("/usr/local/sbin/blkid $device | grep -q 'TYPE=\"exfat\"'") == 0) {
+			if (system ("/usr/local/sbin/blkid $device | grep -q 'TYPE=\"exfat\"'") == 0) {
 				$part[1] = 'exfat';
 			}
 		}
 
-		if ($part[1] eq 'ntfs' && '/usr/local/bin/ntfs-3g') {
+		if ($part[1] eq 'ntfs' && -x '/usr/local/bin/ntfs-3g') {
 			$mount_cmd = "/usr/local/bin/ntfs-3g";
-			$mountopts = "$mountopts,uid=$uid,gid=$gid,umask=077";
 		}
 
 		if ($part[1] eq 'exfat' && -x '/usr/local/sbin/mount.exfat-fuse') {
 			$mount_cmd = "/usr/local/sbin/mount.exfat-fuse";
-			$mountopts = "uid=$uid,gid=$gid,umask=077,noatime";
+		}
+
+		if ($part[1] eq 'ntfs' || $part[1] eq 'exfat') {
+			$mountopts = "$mountopts,uid=$uid,gid=$gid,umask=077";
 		}
 
 		my $trymount = `$mount_cmd -o $mountopts $device $mountbase/$login/$devtype$devnum 2>&1`;
