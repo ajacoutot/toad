@@ -42,8 +42,7 @@ TODO
 ----
 - better notifications and logging (syslog)
 - toadd cleanup mount points on SIG{TERM,HUP,...?}
-- toad cleanup /etc/polkit-1/rules.d/
 - check for parts without hardcoding the supported FS?
+- check whether fuse0 is accessible and use ntfs3g if available
 - pledge(2), unveil(2)
 - move most system() calls to perl modules
-- requirements notification? (blkid, ntfs-3g, mount.exfat-fuse)
