@@ -105,8 +105,9 @@ sub create_mount_point {
 	create_hier ();
 
 	make_path ("$mountbase/$login/$devtype$devnum", {owner=>$uid, group=>$gid, mode=>0700});
-	chown $uid, $gid, "$mountbase/$login", "$mountbase/$login/$devtype$devnum";
-	chmod 0700, "$mountbase/$login", "$mountbase/$login/$devtype$devnum";
+	chown $uid, $gid, "$mountbase/$login/$devtype$devnum";
+	chmod 0500, "$mountbase/$login";
+	chmod 0700, "$mountbase/$login/$devtype$devnum";
 }
 
 sub create_pkrule {
