@@ -34,6 +34,7 @@ toad(8):
 - ConsoleKit			required
 - GLib (OpenBSD package)	required (patched for umount(8) with pkexec(1))
 - Polkit			required (for eject(1)/umount(8))
+- ntfs_3g (OpenBSD package)	required
 
 toadd(8):
 - toad(8)			required
