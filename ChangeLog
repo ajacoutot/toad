@@ -1,5 +1,6 @@
-v1.15 - UNRELEASED
+v1.15 - Sun May 25 08:57:17 UTC 2025
 ------------------------------------
+- improve NTFS support: add support for NTFS-3G if available
 
 v1.14 - Sun Nov 12 20:01:53 CET 2023
 ------------------------------------
