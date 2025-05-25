@@ -30,20 +30,20 @@ Installing
 Runtime dependencies
 --------------------
 toad(8):
-- Net::DBus			required
-- ConsoleKit			required
-- GLib (OpenBSD package)	required (patched for umount(8) with pkexec(1))
-- Polkit			required (for eject(1)/umount(8))
-- ntfs_3g (OpenBSD package)	required
+- Net::DBus (p5-Net-DBus)	required
+- ConsoleKit (consolekit2)	required
+- GLib (glib2)			required (patched for umount(8) with pkexec(1))
+- Polkit (polkit)		required (for eject(1)/umount(8))
+- NTFS-3G (ntfs_3g)		optional (better support for FAT and NTFS)
 
 toadd(8):
 - toad(8)			required
 
 TODO
 ----
+- add support for ExtFAT (https://github.com/ajacoutot/toad/commit/d10a2bbfaa290b1b381dd82ba2976f158231ca86)
 - better notifications and logging (syslog)
 - toadd cleanup mount points on SIG{TERM,HUP,...?}
 - check for parts without hardcoding the supported FS?
-- check whether fuse0 is accessible and use ntfs3g if available
 - pledge(2), unveil(2)
 - move most system() calls to perl modules
