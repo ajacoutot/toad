@@ -313,12 +313,47 @@ sub mount_device {
 		}
 
 		my $devnum = get_mount_point ();
+		my $dirty;
+		my $retry = 1;
+		my $label = `/sbin/disklabel $devname | grep ^label | sed "s,label: ,,g" | sed 's,\/,_,g'`;
+		my $fstype = `/sbin/disklabel $devname | grep "$part:" | awk '{print \$4}'`;
+		chomp $label;
+		chomp $fstype;
+		unless (-z $label) {
+			$devnum = $devnum . ' (' . $label . ')';
+		}
+		my $mountpath="$mountbase/$login/$devtype$devnum";
+
 		create_mount_point ($devnum);
 		create_pkrule ($devname, $devnum, $part);
 
-		my $mountrw = `/sbin/mount -o $mountopts $device $mountbase/$login/$devtype$devnum 2>&1`;
+TRYMOUNT:
+		my $mountrw;
+		if ($fstype eq "NTFS" || $fstype eq "MSDOS") {
+			my $isntfs = system("/usr/local/bin/ntfs-3g.probe --readonly $device 2>/dev/null");
+			if ($isntfs != 0) {
+				$mountrw = `/sbin/mount -o $mountopts $device "$mountpath" 2>&1`;
+			} else {
+				$mountopts = "$mountopts,uid=$uid,gid=$gid";
+				$mountrw = `/usr/local/bin/ntfs-3g -o $mountopts $device "$mountpath" 2>&1`;
+			}
+		} else {
+			$mountrw = `/sbin/mount -o $mountopts $device "$mountpath" 2>&1`;
+		}
+
 		if (length ($mountrw) != 0) {
-			system ("/sbin/mount -o $mountopts,ro $device $mountbase/$login/$devtype$devnum");
+			if ($mountrw =~ /run fsck/) {
+				gdbus_call ("notify",
+					    "Running filesystem check on ${devtype}${devnum}.");
+				system("fsck -y ${device} >/dev/null");
+				if (($? == 0) && ($retry > 0)) {
+					gdbus_call ("notify",
+						"Filesystem on ${devtype}${devnum} is clean.");
+					$retry = 0;
+					goto TRYMOUNT;
+				}
+			}
+			system ("/sbin/mount -o $mountopts,ro $device \"$mountpath\"");
 			unless ($? == 0) {
 				gdbus_call ("notify", "Cannot mount $device!");
 				broom_sweep ();
